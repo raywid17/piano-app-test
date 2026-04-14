@@ -3,58 +3,65 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Piano Tutorial: Canon in D</title>
+    <title>Piano Academy: Canon in D</title>
     <style>
         body {
             display: flex; flex-direction: column; align-items: center;
-            justify-content: center; height: 100vh; background-color: #1a1a1a;
-            font-family: Arial, sans-serif; color: white; margin: 0;
+            justify-content: center; min-height: 100vh; background-color: #1a1a1a;
+            font-family: 'Segoe UI', Arial, sans-serif; color: white; margin: 0;
         }
 
         .status-box {
             margin-bottom: 20px; text-align: center;
-            background: #333; padding: 15px; border-radius: 10px; min-width: 300px;
+            background: #2c3e50; padding: 20px; border-radius: 15px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5); min-width: 350px;
         }
 
-        .piano-container { display: flex; position: relative; background: #000; padding: 20px; border-radius: 10px; }
+        .piano-container { 
+            display: flex; position: relative; background: #000; 
+            padding: 25px; border-radius: 15px; box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+        }
 
-        .key { cursor: pointer; user-select: none; transition: 0.1s; }
+        .key { cursor: pointer; user-select: none; transition: 0.1s; position: relative; }
 
         .white {
-            width: 60px; height: 200px; background: white; border: 1px solid #ccc;
-            border-radius: 0 0 5px 5px; display: flex; align-items: flex-end;
-            justify-content: center; padding-bottom: 10px; color: #333; font-weight: bold;
+            width: 60px; height: 220px; background: white; border: 1px solid #ccc;
+            border-radius: 0 0 8px 8px; display: flex; align-items: flex-end;
+            justify-content: center; padding-bottom: 15px; color: #333; font-weight: bold;
         }
-
-        /* Highlight untuk Tutorial */
-        .key.next-note {
-            background: #2ecc71 !important; /* Hijau menyala */
-            box-shadow: 0 0 20px #2ecc71;
-            transform: translateY(5px);
-        }
-
-        .white:active, .white.active { background: #e0e0e0; }
 
         .black {
-            width: 40px; height: 120px; background: #333; border-radius: 0 0 3px 3px;
+            width: 40px; height: 130px; background: #333; border-radius: 0 0 5px 5px;
             margin-left: -20px; margin-right: -20px; z-index: 2; color: white;
-            display: flex; align-items: flex-end; justify-content: center; padding-bottom: 8px; font-size: 12px;
+            display: flex; align-items: flex-end; justify-content: center; padding-bottom: 10px; font-size: 12px;
         }
 
+        /* Highlight Warna */
+        .key.active-demo { background: #3498db !important; transform: translateY(5px); box-shadow: 0 0 20px #3498db; }
+        .key.next-note { background: #2ecc71 !important; transform: translateY(5px); box-shadow: 0 0 20px #2ecc71; }
+
+        .btn-group { display: flex; gap: 10px; justify-content: center; margin-top: 15px; }
+        
         button {
-            padding: 10px 20px; font-size: 16px; cursor: pointer;
-            background: #2ecc71; border: none; color: white; border-radius: 5px; margin-top: 10px;
+            padding: 12px 18px; font-size: 14px; cursor: pointer; border: none; 
+            color: white; border-radius: 8px; font-weight: bold; transition: 0.3s;
         }
         
-        button:hover { background: #27ae60; }
+        .btn-demo { background: #3498db; }
+        .btn-learn { background: #2ecc71; }
+        button:disabled { background: #7f8c8d; cursor: not-allowed; }
+        button:hover:not(:disabled) { opacity: 0.8; transform: translateY(-2px); }
     </style>
 </head>
 <body>
 
     <div class="status-box">
-        <h2 id="song-title">Mode Bebas</h2>
-        <p id="instruction">Tekan tombol di bawah untuk mulai belajar</p>
-        <button onclick="startTutorial()">Mulai Belajar: Canon in D</button>
+        <h2 id="song-title">Piano Academy</h2>
+        <p id="instruction">Pilih mode untuk memulai</p>
+        <div class="btn-group">
+            <button class="btn-demo" id="btnDemo" onclick="playDemo()">▶ Putar Lagu</button>
+            <button class="btn-learn" id="btnLearn" onclick="startTutorial()">📖 Belajar Nada</button>
+        </div>
     </div>
     
     <div class="piano-container">
@@ -76,51 +83,81 @@
     <script>
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         
-        // Urutan nada Canon in D (Sederhana)
-        const canonInD = ["D", "A", "B", "F#", "G", "D", "G", "A"];
+        // Versi Lebih Panjang (Canon in D Melodi)
+        const canonInD = ["D", "A", "B", "F#", "G", "D", "G", "A", "D", "A", "B", "F#", "G", "D", "G", "A"];
         let tutorialIndex = -1;
+        let isPlayingDemo = false;
 
-        function playNote(frequency) {
+        function playNote(frequency, duration = 1) {
             if (audioCtx.state === 'suspended') audioCtx.resume();
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
             osc.type = 'triangle';
             osc.frequency.setValueAtTime(frequency, audioCtx.currentTime);
-            gain.gain.setValueAtTime(0.5, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 1);
+            gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
             osc.connect(gain); gain.connect(audioCtx.destination);
-            osc.start(); osc.stop(audioCtx.currentTime + 1);
+            osc.start(); osc.stop(audioCtx.currentTime + duration);
         }
 
+        // FUNGSI PUTAR LAGU (DEMO)
+        async function playDemo() {
+            if (isPlayingDemo) return;
+            isPlayingDemo = true;
+            tutorialIndex = -1; // Reset mode belajar
+            toggleButtons(true);
+            
+            document.getElementById('song-title').innerText = "Memutar Demo...";
+            document.getElementById('instruction').innerText = "Perhatikan tuts yang menyala biru";
+
+            for (const noteName of canonInD) {
+                const el = document.querySelector(`.key[data-name="${noteName}"]`);
+                const freq = parseFloat(el.dataset.note);
+                
+                el.classList.add('active-demo');
+                playNote(freq, 0.8);
+                
+                await new Promise(res => setTimeout(res, 600)); // Delay antar nada
+                el.classList.remove('active-demo');
+            }
+
+            isPlayingDemo = false;
+            toggleButtons(false);
+            document.getElementById('instruction').innerText = "Selesai! Sekarang coba mode belajar.";
+        }
+
+        // FUNGSI BELAJAR (TUTORIAL)
         function startTutorial() {
+            if (isPlayingDemo) return;
             tutorialIndex = 0;
-            document.getElementById('song-title').innerText = "Belajar: Canon in D";
+            document.getElementById('song-title').innerText = "Mode Belajar: Canon in D";
             showNextNote();
         }
 
         function showNextNote() {
-            // Hapus semua highlight hijau
-            document.querySelectorAll('.key').forEach(k => k.classList.remove('next-note'));
-            
+            document.querySelectorAll('.key').forEach(k => k.classList.remove('next-note', 'active-demo'));
             if (tutorialIndex < canonInD.length) {
                 const noteToPress = canonInD[tutorialIndex];
                 const el = document.querySelector(`.key[data-name="${noteToPress}"]`);
                 el.classList.add('next-note');
-                document.getElementById('instruction').innerText = `Tekan nada: ${noteToPress}`;
+                document.getElementById('instruction').innerText = `Tekan nada ke-${tutorialIndex + 1}: ${noteToPress}`;
             } else {
-                document.getElementById('instruction').innerText = "Selamat! Kamu berhasil!";
-                document.getElementById('song-title').innerText = "Selesai ✨";
+                document.getElementById('instruction').innerText = "Luar Biasa! Kamu sudah hafal.";
                 tutorialIndex = -1;
             }
         }
 
-        // Logika saat tombol ditekan
+        function toggleButtons(disabled) {
+            document.getElementById('btnDemo').disabled = disabled;
+            document.getElementById('btnLearn').disabled = disabled;
+        }
+
+        // Event Klik
         document.querySelectorAll('.key').forEach(key => {
             key.addEventListener('mousedown', () => {
+                if (isPlayingDemo) return;
                 const noteName = key.dataset.name;
                 playNote(parseFloat(key.dataset.note));
-
-                // Cek apakah nada yang ditekan benar dalam mode tutorial
                 if (tutorialIndex !== -1 && noteName === canonInD[tutorialIndex]) {
                     tutorialIndex++;
                     showNextNote();
@@ -128,21 +165,19 @@
             });
         });
 
-        // Dukungan Keyboard
+        // Event Keyboard
         window.addEventListener('keydown', (e) => {
+            if (isPlayingDemo) return;
             const el = document.querySelector(`.key[data-key="${e.key.toLowerCase()}"]`);
             if (el) {
                 el.classList.add('active');
-                const noteName = el.dataset.name;
                 playNote(parseFloat(el.dataset.note));
-
-                if (tutorialIndex !== -1 && noteName === canonInD[tutorialIndex]) {
+                if (tutorialIndex !== -1 && el.dataset.name === canonInD[tutorialIndex]) {
                     tutorialIndex++;
                     showNextNote();
                 }
             }
         });
-
         window.addEventListener('keyup', (e) => {
             const el = document.querySelector(`.key[data-key="${e.key.toLowerCase()}"]`);
             if (el) el.classList.remove('active');
