@@ -84,7 +84,13 @@
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         
         // Versi Lebih Panjang (Canon in D Melodi)
-        const canonInD = ["D", "A", "B", "F#", "G", "D", "G", "A", "D", "A", "B", "F#", "G", "D", "G", "A"];
+        // Melodi Utama Canon in D yang lebih panjang dan akurat
+const canonInD = [
+    "F#", "E", "D", "C#", "B", "A", "B", "C#", 
+    "D", "C#", "B", "A", "G", "F#", "G", "E",
+    "D", "F#", "A", "G", "F#", "D", "F#", "E",
+    "D", "B", "D", "A", "G", "B", "A", "G", "F#"
+];
         let tutorialIndex = -1;
         let isPlayingDemo = false;
 
